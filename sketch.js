@@ -3,24 +3,53 @@ let result;
 let particleCounts;
 let stepButton;
 let saveButton;
+let setupButton;
 let particles = [];
 let floorLineY;
 
 let SIMULATION_STARTED = false;
-let PARTICLE_COUNT = 750;
+let PARTICLE_COUNT = 550;
 let SMALLNESS = 15;
 
-// inputs
+// Inputs
 let KNO3Slider;
 let charcoalSlider;
 let sulfurSlider;
+
+// Input values
+let KNO3Concentation;
+let charcoalConcentration;
+let sulfurConcentration;
+
+function roundTo(n, digits) {
+  var negative = false;
+  if (digits === undefined) {
+    digits = 0;
+  }
+  if (n < 0) {
+    negative = true;
+    n = n * -1;
+  }
+  var multiplicator = Math.pow(10, digits);
+  n = parseFloat((n * multiplicator).toFixed(11));
+  n = (Math.round(n) / multiplicator).toFixed(digits);
+  if (negative) {
+    n = (n * -1).toFixed(digits);
+  }
+  return n;
+}
 
 function setupParticles() {
   particles = [];
   SIMULATION_STARTED = false; // prevent immediate start
 
   // Initialize simulation
-  sim = new GunpowderSimulation(0.5, 0.3, 0.2, PARTICLE_COUNT);
+  sim = new GunpowderSimulation(
+    KNO3Concentation,
+    charcoalConcentration,
+    sulfurConcentration,
+    PARTICLE_COUNT
+  );
 
   // Run initial simulation
   result = sim.saveState();
@@ -93,30 +122,50 @@ function setupParticles() {
   }
 }
 
+function toggleSimState() {
+  let totalConcentration = roundTo(
+    KNO3Concentation + charcoalConcentration + sulfurConcentration,
+    2
+  );
+
+  if (totalConcentration != 1) {
+    alert("Concentrations must sum to 1");
+    SIMULATION_STARTED = false;
+    return;
+  }
+
+  SIMULATION_STARTED = !SIMULATION_STARTED;
+}
+
 function setup() {
   createCanvas(800, 600);
   background(223);
 
   // Create step button
   stepButton = createButton("Start/Pause Simulation");
-  stepButton.position(10, height - 60);
-  stepButton.mousePressed(() => (SIMULATION_STARTED = !SIMULATION_STARTED));
+  stepButton.position(10, height - 47);
+  stepButton.mousePressed(() => toggleSimState());
 
   // Create save button
   saveButton = createButton("Restart Simulation");
-  saveButton.position(10, height - 30);
+  saveButton.position(10, height - 20);
   saveButton.mousePressed(setupParticles);
+
+  setupButton = createButton("Construct Simulation");
+  setupButton.position(140, height - 20);
+  setupButton.mousePressed(setupParticles);
 
   // Setup sliders to input composition
   KNO3Slider = createSlider(0, 255, 200);
-  KNO3Slider.position(width - 130, 155);
+  KNO3Slider.position(width - 150, 155);
 
-  KNO3Slider = createSlider(0, 255, 200);
-  KNO3Slider.position(width - 130, 155);
+  charcoalSlider = createSlider(0, 255, 200);
+  charcoalSlider.position(width - 150, 195);
 
-  KNO3Slider = createSlider(0, 255, 200);
-  KNO3Slider.position(width - 130, 155);
+  sulfurSlider = createSlider(0, 255, 200);
+  sulfurSlider.position(width - 150, 235);
 
+  // setup particles
   setupParticles();
 }
 
@@ -132,12 +181,26 @@ function draw() {
 
   // General Simulation Information
   text("Time: " + result.time, 20, 40);
-  text("KNO3 Concentration: " + result.KNO3_concentration, 20, 60);
-  text("Charcoal Concentration: " + result.charcoal_concentration, 20, 80);
-  text("Sulfur Concentration: " + result.sulfur_concentration, 20, 100);
+  text(
+    "KNO3 Concentration: " + (result.KNO3_concentration ?? "Waiting for Input"),
+    20,
+    60
+  );
+  text(
+    "Charcoal Concentration: " +
+      (result.charcoal_concentration ?? "Waiting for Input"),
+    20,
+    80
+  );
+  text(
+    "Sulfur Concentration: " +
+      (result.sulfur_concentration ?? "Waiting for Input"),
+    20,
+    100
+  );
   text("Temperature: " + result.temperature, 20, 120);
   text("Pressure: " + result.pressure, 20, 140);
-  text("Burn Rate: " + result.burn_rate, 20, 160);
+  text("Burn Rate: " + (result.burn_rate ?? "0"), 20, 160);
   text("Energy Release: " + result.energy_release, 20, 180);
 
   // Particle Counts
@@ -148,11 +211,65 @@ function draw() {
   text("Total Particle Count: " + particleCounts.total, 20, 300);
   text("Total Particles Displayed: " + particles.length, 20, 320);
 
-  text("KNO3:", width - 130, 65);
-  text("Charcoal:", width - 130, 85);
-  text("Sulfur:", width - 130, 105);
+  text("KNO3:", width - 155, 65);
+  text("Charcoal:", width - 155, 85);
+  text("Sulfur:", width - 155, 105);
 
   // Draw Legend Molecules
+  drawLegend();
+
+  // Draw Slider Info Text
+  fill(200, 200, 255);
+  text(
+    "KNO3: " +
+      `${roundTo(KNO3Concentation, 2)} (${Math.floor(
+        roundTo(KNO3Concentation, 2) * 100
+      )}%)`,
+    width - 155,
+    145
+  );
+
+  text(
+    "Charcoal: " +
+      `${roundTo(charcoalConcentration, 2)} (${Math.floor(
+        roundTo(charcoalConcentration, 2) * 100
+      )}%)`,
+    width - 155,
+    185
+  );
+  text(
+    "Sulfur: " +
+      `${roundTo(sulfurConcentration, 2)} (${Math.floor(
+        roundTo(sulfurConcentration, 2) * 100
+      )}%)`,
+    width - 155,
+    225
+  );
+
+  text(
+    "Total (=1): " +
+      `${roundTo(
+        KNO3Concentation + charcoalConcentration + sulfurConcentration,
+        2
+      )}`,
+    width - 155,
+    265
+  );
+
+  updateSliderValues();
+
+  if (SIMULATION_STARTED) {
+    stepSimulation();
+  }
+}
+
+function updateSliderValues() {
+  KNO3Concentation = map(KNO3Slider.value(), 0, 255, 0, 1);
+  charcoalConcentration = map(charcoalSlider.value(), 0, 255, 0, 1);
+  sulfurConcentration = map(sulfurSlider.value(), 0, 255, 0, 1);
+}
+
+function drawLegend() {
   fill(getParticleColor("KNO3")); // Use specified color
   ellipse(width - 40, 60, calculateRadius("KNO3"), calculateRadius("KNO3"));
 
@@ -178,14 +295,20 @@ function draw() {
     particle.update();
     particle.display();
   });
-
-  if (SIMULATION_STARTED) {
-    stepSimulation();
-  }
 }
 
 function stepSimulation() {
   // Step through the simulation
+  let totalConcentration = roundTo(
+    KNO3Concentation + charcoalConcentration + sulfurConcentration,
+    2
+  );
+
+  if (totalConcentration != 1) {
+    alert("Concentrations must sum to 1");
+    SIMULATION_STARTED = false;
+    return;
+  }
 
   sim.stepSimulation();
   result = sim.saveState();
