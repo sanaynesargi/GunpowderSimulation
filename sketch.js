@@ -8,7 +8,7 @@ let particles = [];
 let floorLineY;
 
 let SIMULATION_STARTED = false;
-let PARTICLE_COUNT = 550;
+let PARTICLE_COUNT = 350;
 let SMALLNESS = 15;
 
 // Inputs
@@ -76,7 +76,7 @@ function setupParticles() {
   let totalWidth = particlesPerRow * particleWidth;
 
   // Calculate the starting x-coordinate to center the mini cube
-  let startX = (width - totalWidth) / 2 + 300;
+  let startX = (width - totalWidth) / 2 + 550;
   let index = 0;
 
   // Loop through each row
@@ -100,14 +100,14 @@ function setupParticles() {
       }
 
       // Get the radius based on the molecule
-      let radius = calculateRadius(molecule);
+      let radius = calculateRadius(molecule) * 1.5;
       let color = getParticleColor(molecule);
       let mass = getParticleMass(molecule);
 
       // Create the particle with adjusted radius, and add it to the array
       particles.push(new Particle(molecule, x, y, mass, radius, color)); // Multiply by 10 to scale for visualization
 
-      // Break the loop if the desired number of particles is reached
+      // Break the loop if the desir ed number of particles is reached
       if (particles.length >= desiredTotalParticles) {
         break;
       }
@@ -138,7 +138,7 @@ function toggleSimState() {
 }
 
 function setup() {
-  createCanvas(800, 600);
+  createCanvas(1200, 600);
   background(223);
 
   // Create step button
@@ -180,35 +180,49 @@ function draw() {
   fill(200, 200, 255);
 
   // General Simulation Information
-  text("Time: " + result.time, 20, 40);
+  text("Time: " + result.time.toFixed(4), 20, 40);
   text(
-    "KNO3 Concentration: " + (result.KNO3_concentration ?? "Waiting for Input"),
+    "KNO3 Concentration: " +
+      (result.KNO3_concentration
+        ? result.KNO3_concentration.toFixed(3)
+        : "Waiting for Input"),
     20,
     60
   );
   text(
     "Charcoal Concentration: " +
-      (result.charcoal_concentration ?? "Waiting for Input"),
+      (result.charcoal_concentration
+        ? result.charcoal_concentration.toFixed(3)
+        : "Waiting for Input"),
     20,
     80
   );
   text(
     "Sulfur Concentration: " +
-      (result.sulfur_concentration ?? "Waiting for Input"),
+      (result.sulfur_concentration
+        ? result.sulfur_concentration.toFixed(3)
+        : "Waiting for Input"),
     20,
     100
   );
-  text("Temperature: " + result.temperature, 20, 120);
-  text("Pressure: " + result.pressure, 20, 140);
-  text("Burn Rate: " + (result.burn_rate ?? "0"), 20, 160);
-  text("Energy Release: " + result.energy_release, 20, 180);
+  text("Temperature: " + result.temperature.toFixed(3) + " K", 20, 120);
+  text("Pressure: " + result.pressure.toFixed(3) + " Pa", 20, 140);
+  text(
+    "Burn Rate: " +
+      (result.burn_rate
+        ? result.burn_rate.toFixed(3) + " ptcl/ts"
+        : "0 ptcl/ts"),
+    20,
+    160
+  );
+  text("Energy Release: " + result.energy_release.toFixed(3) + " gJ", 20, 180);
 
   // Particle Counts
   text("KNO3 Particle Count: " + particleCounts.KNO3, 20, 220);
   text("Charcoal Particle Count: " + particleCounts.charcoal, 20, 240);
   text("Sulfur Particle Count: " + particleCounts.sulfur, 20, 260);
 
-  text("Total Particle Count: " + particleCounts.total, 20, 300);
+  text("Total Particle Count: " + particleCounts.total.toFixed(3), 20, 300);
   text("Total Particles Displayed: " + particles.length, 20, 320);
 
   text("KNO3:", width - 155, 65);
@@ -270,22 +284,30 @@ function updateSliderValues() {
 }
 
 function drawLegend() {
+  let radiusMultipier = 3;
+
   fill(getParticleColor("KNO3")); // Use specified color
-  ellipse(width - 40, 60, calculateRadius("KNO3"), calculateRadius("KNO3"));
+  ellipse(
+    width - 40,
+    60,
+    calculateRadius("KNO3") * radiusMultipier,
+    calculateRadius("KNO3") * radiusMultipier
+  );
 
   fill(getParticleColor("charcoal")); // Use specified color
   ellipse(
     width - 40,
     80,
-    calculateRadius("charcoal", calculateRadius("charcoal"))
+    calculateRadius("charcoal") * radiusMultipier,
+    calculateRadius("charcoal") * radiusMultipier
   );
 
   fill(getParticleColor("sulfur")); // Use specified color
   ellipse(
     width - 40,
     100,
-    calculateRadius("sulfur"),
-    calculateRadius("sulfur")
+    calculateRadius("sulfur") * radiusMultipier,
+    calculateRadius("sulfur") * radiusMultipier
   );
 
   fill(0);
